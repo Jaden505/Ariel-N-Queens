@@ -1,0 +1,17 @@
+click
+matplotlib
+mujoco
+networkx
+nicegui
+noise
+numpy
+numpy_quaternion
+opencv_python
+Pillow
+pydantic
+pydantic_settings
+PyQt5
+QNodeEditor
+rich
+SQLAlchemy
+sqlmodel
