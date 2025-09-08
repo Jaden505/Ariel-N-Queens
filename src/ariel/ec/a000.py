@@ -140,6 +140,38 @@ class IntegerMutator:
         mutation_mask = mutator * sub_mask * do_mask
         new_genotype = ind_arr + mutation_mask
         return cast("Integers", new_genotype.astype(int).tolist())
+    
+    @staticmethod
+    def integer_swap(
+        individual: Integers,
+        mutation_probability: float,
+        swaps: int = 1,
+    ) -> Integers:
+        # Prep
+        ind_arr = np.array(individual)
+        shape = ind_arr.shape
+
+        # Choose swap positions
+        mutator = RNG.integers(
+            low=0,
+            high=shape[-1],
+            size=(swaps, 2),
+        )
+        
+        # Determine which positions to mutate
+        do_mask = RNG.choice(
+            [1, 0],
+            size=swaps,
+            p=[mutation_probability, 1 - mutation_probability],
+        ) # 1 means do swap, 0 means don't
+        
+        for swap_idx, do in zip(mutator, do_mask):
+            if do:
+                pos1, pos2 = swap_idx
+                ind_arr[pos1], ind_arr[pos2] = ind_arr[pos2], ind_arr[pos1]
+            
+        return cast("Integers", ind_arr.astype(int).tolist())
+
 
     @staticmethod
     def float_creep(
