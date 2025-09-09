@@ -64,6 +64,7 @@ class AbstractEA:
         self,
         db_file_path: str | Path | None = None,
         db_handling: DB_HANDLING_MODES | None = None,
+        mute_warnings: bool = True,
     ) -> None:
         """
         _summary_
@@ -89,7 +90,7 @@ class AbstractEA:
 
         # How to handle an existing database file
         db_exists = db_file_path.exists()
-        if db_exists:
+        if db_exists and not mute_warnings:
             msg = f"Database file exists at {db_file_path}!\n"
             msg += f"Behaviour is set to: '{db_handling}' --> "
             match db_handling:
@@ -274,12 +275,17 @@ class EA(AbstractEA):
         self.commit_population()
 
     def run(self) -> None:
-        for _ in track(
-            range(self.num_of_generations),
-            description="Running EA:",
-        ):
-            self.step()
-        self.console.rule("[green]EA Finished Running")
+        if self.quiet:
+            for _ in range(self.num_of_generations):
+                self.step()
+        
+        else:
+            for _ in track(
+                range(self.num_of_generations),
+                description="Running EA:",
+            ):
+                self.step()
+            self.console.rule("[green]EA Finished Running")
 
 
 # ------------------------ EA STEPS ------------------------ #
