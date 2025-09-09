@@ -64,7 +64,6 @@ class AbstractEA:
         self,
         db_file_path: str | Path | None = None,
         db_handling: DB_HANDLING_MODES | None = None,
-        mute_warnings: bool = True,
     ) -> None:
         """
         _summary_
@@ -90,7 +89,7 @@ class AbstractEA:
 
         # How to handle an existing database file
         db_exists = db_file_path.exists()
-        if db_exists and not mute_warnings:
+        if db_exists:
             msg = f"Database file exists at {db_file_path}!\n"
             msg += f"Behaviour is set to: '{db_handling}' --> "
             match db_handling:
@@ -165,6 +164,7 @@ class EA(AbstractEA):
         self.population = population
         self.commit_population()
         self.console.rule("[blue]EA Initialised")
+        self.history = []
 
     @property
     def population_size(self) -> int:
@@ -241,13 +241,15 @@ class EA(AbstractEA):
         mode: Literal["best", "median", "worst"] = "best",
         *,
         only_alive: bool = True,
+        fetched: bool = False,
     ) -> Individual:
         # Query population
-        self.fetch_population(
-            only_alive=only_alive,
-            already_evaluated=True,
-            best_comes="first",  # self.population[0]
-        )
+        if not fetched:
+            self.fetch_population(
+                only_alive=only_alive,
+                already_evaluated=True,
+                best_comes="first",  # self.population[0]
+            )
 
         # Get requested individual
         if config.is_maximisation:
@@ -272,13 +274,19 @@ class EA(AbstractEA):
         self.fetch_population()
         for operation in self.operations:
             self.population = operation(self.population)
+            
+        self.history.append(self.get_solution(fetched=True).fitness)
         self.commit_population()
 
     def run(self) -> None:
         if self.quiet:
             for _ in range(self.num_of_generations):
                 self.step()
-        
+
+                best_of_gen = self.population[0]                
+                if best_of_gen.__dict__.get("fitness_") is not None:
+                    print(best_of_gen.fitness)
+
         else:
             for _ in track(
                 range(self.num_of_generations),
@@ -286,7 +294,8 @@ class EA(AbstractEA):
             ):
                 self.step()
             self.console.rule("[green]EA Finished Running")
-
+            
+        return self.history
 
 # ------------------------ EA STEPS ------------------------ #
 def parent_selection(population: Population) -> Population:
