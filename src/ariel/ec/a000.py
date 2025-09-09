@@ -47,15 +47,15 @@ class IntegersGenerator:
         low: int,
         high: int,
         size: int | Sequence[int] | None = 1,
+        replace: bool = False,
         *,
         endpoint: bool | None = None,
     ) -> Integers:
         endpoint = endpoint or config.integers_endpoint
-        generated_values = RNG.integers(
-            low=low,
-            high=high,
+        generated_values = RNG.choice(
+            np.arange(low, high + (1 if endpoint else 0)), 
             size=size,
-            endpoint=endpoint,
+            replace=replace
         )
         return cast("Integers", generated_values.astype(int).tolist())
 
@@ -156,7 +156,8 @@ class IntegerMutator:
             low=0,
             high=shape[-1],
             size=(swaps, 2),
-        )
+            endpoint=False
+        ) 
         
         # Determine which positions to mutate
         do_mask = RNG.choice(

@@ -59,8 +59,29 @@ class Crossover:
         child1 = child1.reshape(parent_i_arr_shape).astype(int).tolist()
         child2 = child2.reshape(parent_j_arr_shape).astype(int).tolist()
         return child1, child2
+    
+    @staticmethod
+    def order_cross(
+        parent_i: JSONIterable,
+        parent_j: JSONIterable,
+    ) -> tuple[JSONIterable, JSONIterable]:
+        parent_i_arr = np.array(parent_i).flatten().copy()
+        parent_j_arr = np.array(parent_j).flatten().copy()
+        
+        cp1, cp2 = sorted(RNG.choice(len(parent_i_arr), size=2, replace=False)) # Crossover points
+        
+        pi_slice = parent_i_arr[cp1:cp2].tolist()
+        not_in_slice = [gene for gene in parent_j_arr if gene not in pi_slice]
+        child1 = not_in_slice[:cp1] + pi_slice + not_in_slice[cp1:]
+        
+        pj_slice = parent_j_arr[cp1:cp2].tolist()
+        not_in_slice = [gene for gene in parent_i_arr if gene not in pj_slice]
+        child2 = not_in_slice[:cp1] + pj_slice + not_in_slice[cp1:]
 
-
+        return child1, child2
+        
+        
+ 
 def main() -> None:
     """Entry point."""
     p1 = IntegersGenerator.integers(-5, 5, (2, 5))
